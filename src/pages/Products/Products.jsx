@@ -3,34 +3,41 @@ import { useState } from 'react';
 import { useParams } from 'react-router-dom';
 import "./Products.scss";
 import List from '../../components/List/List';
+import useOne from "../../hooks/useOne";
 
 const Products = () => {
-
-  const catId = parseInt(useParams().id)
+  const catId = parseInt(useParams().id);
     // const param = useParams() will return a string, need to convert to an intger, changed to: const catId = parseInt(useParams().id)
+  const [maxPrice, setMaxPrice] = useState(5000);
+  const [sort, setSort] = useState(null);
+  const [selectedSubCats, setSelectedSubCats] = useState([]);
 
-  const [maxPrice, setMaxPrice] = useState(5000)
-  const [sort, setSort] = useState(null)
-  
+  const {data, loading, error} = useOne(`/sub-categories?[filters][categories][id][$eq]=${catId}`);
+
+  const handleChange = (e) => {
+    const value = e.target.value;
+    const isChecked = e.target.checked;
+
+    setSelectedSubCats(isChecked 
+    ? [...selectedSubCats, value] 
+    : selectedSubCats.filter((item) => item !== value)
+    );
+  };
+
+  console.log(selectedSubCats);
+
   return (
     <div className='products'>
       <div className="left">
         <div className="filterItem">
           <h2>Products Categories</h2>
-          <div className="inputItem">
-            <input type="checkbox" i="1" value={1} />
-            <label htmlFor="1">Shoes</label>
-          </div>
-          <div className="inputItem">
-            <input type="checkbox" id="2" value={2} />
-            <label htmlFor="2">Shirts</label>
-          </div>
-          <div className="inputItem">
-            <input type="checkbox" id="3" value={3} />
-            <label htmlFor="3">Coats</label>
-          </div>
+          {data && data.map((item) => (
+            <div className="inputItem" key={item.id}>
+              <input type="checkbox" i={item.id} value={item.id} />
+              <label htmlFor={item.id}>{item.attributes.title}</label>
+            </div>
+            ))}          
         </div>
-
         <div className="filterItem">
           <h2>Filter by Price</h2>
           <div className="inputItem">
@@ -59,7 +66,7 @@ const Products = () => {
         src="https://realscreen.com/wp/wp-content/uploads/2019/03/samuel-l-jackson-enslaved.png"
         alt="" />
         
-        <List catId={catId} maxPrice={maxPrice} sort={sort}/>
+        <List catId={catId} maxPrice={maxPrice} sort={sort} subCats={selectedSubCats} />
       </div>
     </div>
   )
